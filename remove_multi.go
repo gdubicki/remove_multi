@@ -51,8 +51,8 @@ func remove(targetLines []string, toRemoveLines []string) ([] string, error) {
 
 	// If the are any lines remaining then add them
 	if i < len(targetLines) {
-		restOfLines := targetLines[i]
-		toReturn = append(toReturn, restOfLines)
+		restOfLines := targetLines[i:]
+		toReturn = append(toReturn, restOfLines...)
 	}
 
 	return toReturn, nil

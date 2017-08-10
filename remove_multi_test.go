@@ -3,6 +3,7 @@ package main
 import (
 	"testing"
 	"log"
+	"strings"
 )
 
 func TestRemoveSingleLine(t *testing.T) {
@@ -117,6 +118,110 @@ func TestRemoveMoreLinesFromEnd(t *testing.T) {
 	}
 
 	helper(targetLines, toRemoveLines, expectedResultLines, t)
+}
+
+func TestRemoveFirstLineDoesntMatch(t *testing.T) {
+	targetLines := []string {
+		"Line 1",
+		"Line 2",
+		"Line 3",
+		"Line 4",
+	}
+	toRemoveLines := []string{
+		"Line 2",
+		"Line that doesn't match",
+		"Line 4",
+	}
+
+	expectedResultLines := []string {
+		"Line 1",
+		"Line 2",
+		"Line 3",
+		"Line 4",
+	}
+
+	helper(targetLines, toRemoveLines, expectedResultLines, t)
+}
+
+func TestRemoveSomeRegexp(t *testing.T) {
+	targetLines := string_to_lines(`
+some lines...
+
+foo::bar::foo: barbar
+abc::def::zxy:
+  something_else:
+    paths:
+      - /opt/tomcat/path/logs/filer_whatever.log
+    fields:
+      datacenter: dc
+      type: filer_whatever
+    multiline:
+      pattern: ^(ERROR|INFO|WAR|TRACE|NOTICE|ALERT|CRIT|DEBUG)
+      negate: true
+      match: after
+
+some other lines`)
+	toRemoveLines := string_to_lines(`abc::def::zxy:
+  .*_else:
+    paths:
+      - /opt/tomcat/path/logs/.*_whatever.log
+    fields:
+      datacenter:.*
+      type: .*
+    multiline:
+      pattern: .*
+      negate: .*
+      match: .*`)
+
+	expectedResultLines := string_to_lines(`
+some lines...
+
+foo::bar::foo: barbar
+
+some other lines`)
+
+	helper(targetLines, toRemoveLines, expectedResultLines, t)
+}
+
+func TestRemoveSomeRegexpDontMatchAll(t *testing.T) {
+	targetLines := string_to_lines(`
+some lines...
+
+foo::bar::foo: barbar
+abc::def::zxy:
+  something_not-matching:
+    paths:
+      - /opt/tomcat/path/logs/filer_whatever.log
+    fields:
+      datacenter: dc
+      type: filer_whatever
+    multiline:
+      pattern: ^(ERROR|INFO|WAR|TRACE|NOTICE|ALERT|CRIT|DEBUG)
+      negate: true
+      match: after
+
+some other lines`)
+
+	toRemoveLines := string_to_lines(`abc::def::zxy:
+  .+_else:
+    paths:
+      - /opt/tomcat/path/logs/.*_whatever.log
+    fields:
+      datacenter:.*
+      type: .*
+    multiline:
+      pattern: .*
+      negate: .*
+      match: .*`)
+
+	expectedResultLines := targetLines
+
+	helper(targetLines, toRemoveLines, expectedResultLines, t)
+}
+
+
+func string_to_lines(aString string) []string {
+	return strings.Split(aString, "\n")
 }
 
 func helper(targetLines []string, toRemoveLines []string, expectedResultLines []string, t *testing.T) {
