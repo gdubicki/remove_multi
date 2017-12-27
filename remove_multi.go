@@ -16,10 +16,6 @@ func remove(targetLines []string, toRemoveLines []string, toReplaceLines []strin
 		log.Fatal("You need less to remove lines than target lines!")
 	}
 
-	if toReplaceLines != nil && len(toRemoveLines) != len(toReplaceLines) {
-		log.Fatal("You need same number of lines in to_replace as in to_remove files!")
-	}
-
 	compiledLines, err := compileLines(toRemoveLines)
 
 	if err != nil {
