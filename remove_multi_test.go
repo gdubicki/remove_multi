@@ -21,7 +21,7 @@ func TestRemoveSingleLine(t *testing.T) {
 		"Line 3",
 	}
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveSingleLineFromBeginning(t *testing.T) {
@@ -39,7 +39,7 @@ func TestRemoveSingleLineFromBeginning(t *testing.T) {
 		"Line 3",
 	}
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveSingleLineFromEnd(t *testing.T) {
@@ -57,7 +57,7 @@ func TestRemoveSingleLineFromEnd(t *testing.T) {
 		"Line 2",
 	}
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveMoreLines(t *testing.T) {
@@ -77,7 +77,7 @@ func TestRemoveMoreLines(t *testing.T) {
 		"Line 4",
 	}
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveMoreLinesFromBeginning(t *testing.T) {
@@ -97,7 +97,7 @@ func TestRemoveMoreLinesFromBeginning(t *testing.T) {
 		"Line 4",
 	}
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveMoreLinesFromEnd(t *testing.T) {
@@ -117,7 +117,7 @@ func TestRemoveMoreLinesFromEnd(t *testing.T) {
 		"Line 2",
 	}
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveFirstLineDoesntMatch(t *testing.T) {
@@ -140,7 +140,7 @@ func TestRemoveFirstLineDoesntMatch(t *testing.T) {
 		"Line 4",
 	}
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveSomeRegexp(t *testing.T) {
@@ -180,7 +180,7 @@ foo::bar::foo: barbar
 
 some other lines`)
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
 }
 
 func TestRemoveSomeRegexpDontMatchAll(t *testing.T) {
@@ -216,7 +216,30 @@ some other lines`)
 
 	expectedResultLines := targetLines
 
-	helper(targetLines, toRemoveLines, expectedResultLines, t)
+	remove_helper(targetLines, toRemoveLines, expectedResultLines, t)
+}
+
+
+func TestReplaceSingleLine(t *testing.T) {
+	targetLines := []string {
+		"Line 1",
+		"Line 2",
+		"Line 3",
+	}
+	toRemoveLines := []string{
+		"Line 2",
+	}
+	toReplaceLines := []string{
+		"Line ABC",
+	}
+
+	expectedResultLines := []string {
+		"Line 1",
+		"Line ABC",
+		"Line 3",
+	}
+
+	replace_helper(targetLines, toRemoveLines, toReplaceLines, expectedResultLines, t)
 }
 
 
@@ -224,8 +247,8 @@ func string_to_lines(aString string) []string {
 	return strings.Split(aString, "\n")
 }
 
-func helper(targetLines []string, toRemoveLines []string, expectedResultLines []string, t *testing.T) {
-	result, err := remove(targetLines, toRemoveLines)
+func remove_helper(targetLines []string, toRemoveLines []string, expectedResultLines []string, t *testing.T) {
+	result, err := remove(targetLines, toRemoveLines, nil)
 
 	if err != nil {
 		log.Fatal(err)
@@ -237,6 +260,21 @@ func helper(targetLines []string, toRemoveLines []string, expectedResultLines []
 		)
 	}
 }
+
+func replace_helper(targetLines []string, toRemoveLines []string, toReplaceLines[]string, expectedResultLines []string, t *testing.T) {
+	result, err := remove(targetLines, toRemoveLines, toReplaceLines)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if ! testEq(result, expectedResultLines) {
+		t.Errorf(
+			"For '%s' + ('%s' -> '%s')\nexpected '%s'\ngot '%s'\n", targetLines, toRemoveLines, toReplaceLines, expectedResultLines, result,
+		)
+	}
+}
+
 func testEq(a, b []string) bool {
 
 	if a == nil && b == nil {

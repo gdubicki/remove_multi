@@ -8,23 +8,34 @@ import (
 
 // TODO: use something like Python's argparse for a nice cli
 func main() {
+	var resultFileLines []string
 
-	targetFile := os.Args[1]
-	toRemoveFile := os.Args[2]
+	operation := os.Args[1] // "remove" or "replace"
+
+	targetFile := os.Args[2]
+	toRemoveFile := os.Args[3]
 
 	targetFileLines, err := readLines(targetFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	toRemoveFileLines, err := readLines(toRemoveFile)
+	toRemoveOrReplaceFileLines, err := readLines(toRemoveFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	resultFileLines, err := remove(targetFileLines, toRemoveFileLines)
-	if err != nil {
-		log.Fatal(err)
+	if operation == "remove" {
+		resultFileLines, err = remove(targetFileLines, toRemoveOrReplaceFileLines, nil)
+	} else if operation == "replace" {
+		toReplaceFile := os.Args[4]
+
+		toReplaceFileLines, err := readLines(toReplaceFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		resultFileLines, err = remove(targetFileLines, toRemoveOrReplaceFileLines, toReplaceFileLines)
 	}
 
 	writeLines(targetFile, resultFileLines)

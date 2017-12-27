@@ -6,13 +6,18 @@ import (
 	"fmt"
 )
 
-func remove(targetLines []string, toRemoveLines []string) ([] string, error) {
+
+func remove(targetLines []string, toRemoveLines []string, toReplaceLines []string) ([] string, error) {
 	// Let's start with naive implementation that works and more forward from here
 
 	var toReturn []string
 
 	if len(toRemoveLines) > len(targetLines) {
 		log.Fatal("You need less to remove lines than target lines!")
+	}
+
+	if toReplaceLines != nil && len(toRemoveLines) != len(toReplaceLines) {
+		log.Fatal("You need same number of lines in to_replace as in to_remove files!")
 	}
 
 	compiledLines, err := compileLines(toRemoveLines)
@@ -23,7 +28,7 @@ func remove(targetLines []string, toRemoveLines []string) ([] string, error) {
 
 	var allMatch bool
 
-	var i int = 0
+	var i = 0
 
 	// Use sliding window
 	for ; i < len(targetLines) - len(toRemoveLines) + 1; {
@@ -41,6 +46,9 @@ func remove(targetLines []string, toRemoveLines []string) ([] string, error) {
 		}
 
 		if allMatch {
+			if toReplaceLines != nil {
+				toReturn = append(toReturn, toReplaceLines...)
+			}
 			i += len(toRemoveLines)
 		} else {
 			toReturn = append(toReturn, targetLines[i])
